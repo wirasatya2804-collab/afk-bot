@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
     libopus-dev \
     libffi-dev \
     libnacl-dev \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
