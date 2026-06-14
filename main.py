@@ -718,12 +718,16 @@ async def on_message(message):
             data['gold'] = 0
 
         hasil_text = f'{pesan}\n'
+        sign_plus = '➕'
+        sign_minus = '➖'
         if stat == 'gold':
-            hasil_text += f'{"\u2795" if jumlah > 0 else "\u2796"} {abs(jumlah)} Gold (Total: {data["gold"]})'
+            sign = sign_plus if jumlah > 0 else sign_minus
+            hasil_text += f'{sign} {abs(jumlah)} Gold (Total: {data["gold"]})'
         elif stat == 'hp':
-            hasil_text += f'{"\u2795" if jumlah > 0 else "\u2796"} {abs(jumlah)} HP (Total: {data["hp"]}/100)'
+            sign = sign_plus if jumlah > 0 else sign_minus
+            hasil_text += f'{sign} {abs(jumlah)} HP (Total: {data["hp"]}/100)'
         elif stat == 'xp':
-            hasil_text += f'\u2795 {jumlah} XP (Total: {data["xp"]})'
+            hasil_text += f'➕ {jumlah} XP (Total: {data["xp"]})'
 
         naik = cek_level_up(data)
         if naik:
@@ -1090,8 +1094,9 @@ async def on_message(message):
         data['last_adventure'] = now
         naik = cek_level_up(data)
         sign = '+' if jumlah >= 0 else ''
+        icon = '✅' if jumlah >= 0 else '⚠️'
         teks = f'🗺️ **{message.author.display_name}** menjelajah ke **{nama_lokasi}**!\n'
-        teks += f'{"✅" if jumlah >= 0 else "⚠️"} {sign}{jumlah} {stat.upper()} (Sekarang: {data[stat]})'
+        teks += f'{icon} {sign}{jumlah} {stat.upper()} (Sekarang: {data[stat]})'
         if naik:
             teks += f'\n🎉 **LEVEL UP! Level {data["level"]}!**'
         await message.channel.send(teks)
@@ -1114,7 +1119,8 @@ async def on_message(message):
             bar_fill = min(10, int((progress / quest['target']) * 10))
             bar = '█' * bar_fill + '░' * (10 - bar_fill)
             status = '✅' if done else f'`[{bar}]` {progress}/{quest["target"]}'
-            teks += f'{"~~" if done else ""}{quest["nama"]}{"~~" if done else ""} — {status}\n'
+            prefix = '~~' if done else ''
+            teks += f'{prefix}{quest["nama"]}{prefix} — {status}\n'
             if not done:
                 teks += f'> {quest["deskripsi"]} | 🎁 +{quest["reward_xp"]} XP, +{quest["reward_gold"]} Gold\n'
         teks += '\n'
@@ -1126,7 +1132,8 @@ async def on_message(message):
             bar_fill = min(10, int((progress / quest['target']) * 10))
             bar = '█' * bar_fill + '░' * (10 - bar_fill)
             status = '✅ SELESAI' if done else f'`[{bar}]` {progress}/{quest["target"]}'
-            teks += f'{"~~" if done else ""}{quest["nama"]}{"~~" if done else ""} — {status}\n'
+            prefix = '~~' if done else ''
+            teks += f'{prefix}{quest["nama"]}{prefix} — {status}\n'
             if not done:
                 teks += f'> {quest["deskripsi"]} | 🎁 +{quest["reward_xp"]} XP, +{quest["reward_gold"]} Gold\n'
 
