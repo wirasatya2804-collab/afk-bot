@@ -7,11 +7,14 @@ import datetime
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
+intents.voice_states = True
 
 client = discord.Client(intents=intents)
 
 queues = {}
 afk_users = {}
+last_voice_channel = {}
+intentional_leave = {}
 
 ROLE_ADMIN = ['Koya', 'Arcane', 'Owner', 'own gatau']
 
@@ -62,6 +65,30 @@ async def on_ready():
     print(f'Bot {client.user} online!')
 
 @client.event
+async def on_voice_state_update(member, before, after):
+    if member.id != client.user.id:
+        return
+
+    # Bot terputus dari voice
+    if before.channel is not None and after.channel is None:
+        guild_id = member.guild.id
+
+        # Kalau memang diminta keluar lewat ?leave, jangan rejoin
+        if intentional_leave.get(guild_id):
+            intentional_leave[guild_id] = False
+            return
+
+        channel = last_voice_channel.get(guild_id)
+        if channel:
+            await asyncio.sleep(2)
+            try:
+                vc = await channel.connect()
+                await vc.guild.change_voice_state(channel=channel, self_deaf=True)
+                print(f'Auto-rejoin ke {channel.name}')
+            except Exception as e:
+                print(f'Gagal auto-rejoin: {e}')
+
+@client.event
 async def on_message(message):
     if message.author == client.user:
         return
@@ -106,6 +133,7 @@ async def on_message(message):
             channel = message.author.voice.channel
             vc = await channel.connect()
             await vc.guild.change_voice_state(channel=channel, self_deaf=True)
+            last_voice_channel[message.guild.id] = channel
             await message.channel.send(f'✅ Joined **{channel.name}**!')
         else:
             await message.channel.send('Kamu harus masuk voice channel dulu!')
@@ -118,6 +146,8 @@ async def on_message(message):
         if message.guild.voice_client:
             if message.guild.id in queues:
                 queues[message.guild.id] = []
+            intentional_leave[message.guild.id] = True
+            last_voice_channel.pop(message.guild.id, None)
             await message.guild.voice_client.disconnect()
             await message.channel.send('👋 Bot keluar dari voice channel!')
 
